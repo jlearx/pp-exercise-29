@@ -4,10 +4,14 @@ Created on Sep 27, 2017
 @author: jlearx
 '''
 
-NOWINNER = "No winner yet. Game not over."
-PLAYER1WON = "Game over! Player 1 Won!"
-PLAYER2WON = "Game over! Player 2 Won!"
-DRAW = "Game over! Draw!"
+NOWINNER = 0
+PLAYER1WON = 1
+PLAYER2WON = 2
+DRAW = 3
+
+PLAYER1WONMSG = "Game over! Player 1 Won!"
+PLAYER2WONMSG = "Game over! Player 2 Won!"
+DRAWMSG = "Game over! Draw!"
 
 # Number of columns
 COLSIZE = 3
@@ -31,11 +35,13 @@ def checkInARow(row):
     else:
         return DRAW    
 
+# Check for horizontal wins by checking each row
 def checkHorizontal(gameBoard):
     finalResult = DRAW
     result = DRAW
     rowIdx = 0
     
+    # Check each row for a winner or draw
     while (((result == NOWINNER) or (result == DRAW)) and (rowIdx < ROWSIZE)):
         row = gameBoard[rowIdx]
         result = checkInARow(row)
@@ -49,11 +55,13 @@ def checkHorizontal(gameBoard):
 
     return finalResult
 
+# Check for vertical wins by checking each column
 def checkVertical(gameBoard):
     finalResult = DRAW
     result = DRAW
     colIdx = 0
     
+    # Check each column for a winner or draw
     while (((result == NOWINNER) or (result == DRAW)) and (colIdx < COLSIZE)):
         row = []
         
@@ -71,29 +79,102 @@ def checkVertical(gameBoard):
 
     return finalResult
 
-def checkDiagonal(gameBoard):
-    # Broken for grids bigger than size 3
+# Check for diagonals across top
+def checkDiagonalTop(gameBoard):
     finalResult = DRAW
     
-    # Check first diagonal
-    row = [gameBoard[0][0], gameBoard[1][1], gameBoard[2][2]]
-    result = checkInARow(row)
-    
-    if (result == NOWINNER):
-        finalResult = NOWINNER
-    elif ((result == PLAYER1WON) or (result == PLAYER2WON)):
-        return result    
-    
-    # Check second diagonal    
-    row = [gameBoard[0][2], gameBoard[1][1], gameBoard[2][0]]
-    result = checkInARow(row)        
+    # Check positive slope diagonals
+    for col in range(0,COLSIZE):
+        diagonal = []
+        result = DRAW
+        row = 0
+        diagonal.append(gameBoard[row][col])        
         
-    if (result == NOWINNER):
-        finalResult = NOWINNER
-    elif ((result == PLAYER1WON) or (result == PLAYER2WON)):
-        return result
+        for i in range(0,ROWSIZE):
+            if ((row + 1 < ROWSIZE) and (col + 1 < COLSIZE)):
+                diagonal.append(gameBoard[row + 1][col + 1])
+    
+        if (len(diagonal) >= TOWIN):
+            result = checkInARow(diagonal)
+    
+        if (result == NOWINNER):
+            finalResult = NOWINNER
+        elif ((result == PLAYER1WON) or (result == PLAYER2WON)):
+            return result
+    
+    # Check negative slope diagonals
+    for col in range(COLSIZE,0,-1):
+        diagonal = []
+        result = DRAW
+        row = 0
+        diagonal.append(gameBoard[row][col])        
+        
+        for i in range(0,ROWSIZE):
+            if ((row + 1 < ROWSIZE) and (col - 1 >= 0)):
+                diagonal.append(gameBoard[row + 1][col - 1])
+    
+        if (len(diagonal) >= TOWIN):
+            result = checkInARow(diagonal)
+    
+        if (result == NOWINNER):
+            finalResult = NOWINNER
+        elif ((result == PLAYER1WON) or (result == PLAYER2WON)):
+            return result      
 
-    return finalResult    
+    return finalResult        
+
+# Check for diagonals across left side
+def checkDiagonalLeft(gameBoard):
+    finalResult = DRAW
+    
+    # Check positive slope diagonals
+    for row in range(0,ROWSIZE):
+        diagonal = []
+        result = DRAW
+        col = 0
+        diagonal.append(gameBoard[row][col])        
+        
+        for i in range(0,COLSIZE):
+            if ((row + 1 < ROWSIZE) and (col + 1 < COLSIZE)):
+                diagonal.append(gameBoard[row + 1][col + 1])
+    
+        if (len(diagonal) >= TOWIN):
+            result = checkInARow(diagonal)
+    
+        if (result == NOWINNER):
+            finalResult = NOWINNER
+        elif ((result == PLAYER1WON) or (result == PLAYER2WON)):
+            return result
+    
+    # Check negative slope diagonals
+    for row in range(ROWSIZE,0,-1):
+        diagonal = []
+        result = DRAW
+        col = 0
+        diagonal.append(gameBoard[row][col])        
+        
+        for i in range(0,COLSIZE):
+            if ((row + 1 < ROWSIZE) and (col - 1 >= 0)):
+                diagonal.append(gameBoard[row + 1][col - 1])
+    
+        if (len(diagonal) >= TOWIN):
+            result = checkInARow(diagonal)
+    
+        if (result == NOWINNER):
+            finalResult = NOWINNER
+        elif ((result == PLAYER1WON) or (result == PLAYER2WON)):
+            return result      
+
+    return finalResult
+
+# Check for diagonal wins by checking each diagonal
+def checkDiagonal(gameBoard):    
+    if (COLSIZE >= ROWSIZE):
+        # Check across top
+        return checkDiagonalTop(gameBoard)
+    else:
+        # Check across left side
+        return checkDiagonalLeft(gameBoard)
 
 def checkWinner(gameBoard):
     finalResult = DRAW
@@ -104,7 +185,7 @@ def checkWinner(gameBoard):
     if (result == NOWINNER):
         finalResult = NOWINNER
     elif ((result == PLAYER1WON) or (result == PLAYER2WON)):
-        return result    
+        return result
     
     # Check for vertical wins
     result = checkVertical(gameBoard)
@@ -239,22 +320,13 @@ def makeMove(gameBoard, move, p1Turn):
     
     # Update the Game Board
     if (p1Turn):
-        gameBoard[row][col] = 'X'
+        gameBoard[row][col] = 1
     else:
-        gameBoard[row][col] = 'O'
-
-def checkGameOver(gameBoard):
-    gameOver = True
-    
-    for row in gameBoard:
-        if (0 in row):
-            gameOver = False
-            
-    return gameOver
+        gameBoard[row][col] = 2
 
 def playGame(gameBoard):
     p1Turn = True
-    gameOver = False
+    result = NOWINNER
     
     # Take turns and switch player at end of turn
     while (True):
@@ -270,9 +342,10 @@ def playGame(gameBoard):
         makeMove(gameBoard, move, p1Turn)
         
         # Check the game state
-        gameOver = checkGameOver(gameBoard)
+        result = checkWinner(gameBoard)
         
-        if (gameOver):
+        # If Game Over, exit loop
+        if (result != NOWINNER):
             break
         
         # Switch current player
@@ -282,6 +355,15 @@ def playGame(gameBoard):
             p1Turn = True
 
     print("GAME OVER")
+    
+    # Print the game result
+    if (result == 1):
+        print(PLAYER1WONMSG)
+    elif (result == 2):
+        print(PLAYER2WONMSG)
+    else:
+        print(DRAWMSG)
+    
     printGameBoard(gameBoard)
 
 def newGame():
@@ -302,8 +384,6 @@ def newGame():
     
 if __name__ == '__main__':
     gameBoard = newGame()
-    printGameBoard(gameBoard)
-
-    #playGame(gameBoard)
+    playGame(gameBoard)
         
     
