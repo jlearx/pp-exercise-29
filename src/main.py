@@ -22,16 +22,55 @@ ROWSIZE = 3
 # Number needed to WIN
 TOWIN = 3
 
+# Check if there is a consecutive win
+def checkIfConsecutive(row):
+    rowLen = len(row)
+    
+    # For each element
+    for i in range(0,rowLen):
+        r1 = row[i]
+        count = 1
+        
+        # Check if successive elements match
+        for r2 in row[i + 1:]:
+            if (r1 == r2):
+                count += 1
+            else:
+                break
+        
+        if (count >= TOWIN):
+            return True
+    
+    return False    
+
+# Check if a series of cells contains a win
+# row is a column, diagonal, or row from the grid
 def checkInARow(row):
-    # Can't win if there is a 0 in the row
-    if (0 in row):
+    # Can't win if there are many 0's in the row
+    if (row.count(0) >= TOWIN - 1):
         return NOWINNER
-    elif (row.count(1) == TOWIN):
-        # Does not guarantee a win if length > TOWIN
-        return PLAYER1WON
-    elif (row.count(2) == TOWIN):
-        # Does not guarantee a win if length > TOWIN
-        return PLAYER2WON
+    elif (row.count(1) >= TOWIN):
+        # Possible winner
+        # Winner if row is same length
+        if (len(row) == TOWIN):
+            return PLAYER1WON
+        
+        # Otherwise check if consecutive
+        if (checkIfConsecutive(row)):
+            return PLAYER1WON
+        else:
+            return DRAW
+    elif (row.count(2) >= TOWIN):
+        # Possible winner, check if consecutive
+        # Winner if row is same length
+        if (len(row) == TOWIN):
+            return PLAYER2WON
+        
+        # Otherwise check if consecutive
+        if (checkIfConsecutive(row)):
+            return PLAYER2WON
+        else:
+            return DRAW
     else:
         return DRAW    
 
@@ -63,12 +102,12 @@ def checkVertical(gameBoard):
     
     # Check each column for a winner or draw
     while (((result == NOWINNER) or (result == DRAW)) and (colIdx < COLSIZE)):
-        row = []
+        column = []
         
         for rowIdx in range(0,ROWSIZE):
-            row.append(gameBoard[rowIdx][colIdx])
+            column.append(gameBoard[rowIdx][colIdx])
         
-        result = checkInARow(row)
+        result = checkInARow(column)
         
         if (result == NOWINNER):
             finalResult = NOWINNER
@@ -83,7 +122,7 @@ def checkVertical(gameBoard):
 def checkDiagonalTop(gameBoard):
     finalResult = DRAW
     
-    # Check positive slope diagonals
+    # Check negative slope diagonals
     for col in range(0,COLSIZE):
         diagonal = []
         result = DRAW
@@ -102,7 +141,7 @@ def checkDiagonalTop(gameBoard):
         elif ((result == PLAYER1WON) or (result == PLAYER2WON)):
             return result
     
-    # Check negative slope diagonals
+    # Check positive slope diagonals
     for col in range(COLSIZE,0,-1):
         diagonal = []
         result = DRAW
@@ -127,7 +166,7 @@ def checkDiagonalTop(gameBoard):
 def checkDiagonalLeft(gameBoard):
     finalResult = DRAW
     
-    # Check positive slope diagonals
+    # Check negative slope diagonals
     for row in range(0,ROWSIZE):
         diagonal = []
         result = DRAW
@@ -146,7 +185,7 @@ def checkDiagonalLeft(gameBoard):
         elif ((result == PLAYER1WON) or (result == PLAYER2WON)):
             return result
     
-    # Check negative slope diagonals
+    # Check positive slope diagonals
     for row in range(ROWSIZE,0,-1):
         diagonal = []
         result = DRAW
@@ -154,8 +193,8 @@ def checkDiagonalLeft(gameBoard):
         diagonal.append(gameBoard[row][col])        
         
         for i in range(0,COLSIZE):
-            if ((row + 1 < ROWSIZE) and (col - 1 >= 0)):
-                diagonal.append(gameBoard[row + 1][col - 1])
+            if ((row - 1 >= 0) and (col + 1 < COLSIZE)):
+                diagonal.append(gameBoard[row - 1][col + 1])
     
         if (len(diagonal) >= TOWIN):
             result = checkInARow(diagonal)
@@ -168,12 +207,13 @@ def checkDiagonalLeft(gameBoard):
     return finalResult
 
 # Check for diagonal wins by checking each diagonal
-def checkDiagonal(gameBoard):    
+def checkDiagonal(gameBoard):
+    # If a wide grid, need to check along top
     if (COLSIZE >= ROWSIZE):
         # Check across top
         return checkDiagonalTop(gameBoard)
     else:
-        # Check across left side
+        # Check across left side for tall grids
         return checkDiagonalLeft(gameBoard)
 
 def checkWinner(gameBoard):
