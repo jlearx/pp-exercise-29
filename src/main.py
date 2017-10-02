@@ -58,8 +58,6 @@ def checkInARow(row):
         # Otherwise check if consecutive
         if (checkIfConsecutive(row)):
             return PLAYER1WON
-        else:
-            return DRAW
     elif (row.count(2) >= TOWIN):
         # Possible winner, check if consecutive
         # Winner if row is same length
@@ -69,10 +67,12 @@ def checkInARow(row):
         # Otherwise check if consecutive
         if (checkIfConsecutive(row)):
             return PLAYER2WON
-        else:
-            return DRAW
-    else:
-        return DRAW    
+    
+    # Check if this row is still playable
+    if (row.count(0) >= 1):
+        return NOWINNER
+    
+    return DRAW    
 
 # Check for horizontal wins by checking each row
 def checkHorizontal(gameBoard):
@@ -127,11 +127,15 @@ def checkDiagonalTop(gameBoard):
         diagonal = []
         result = DRAW
         row = 0
+        colNxt = col
         diagonal.append(gameBoard[row][col])        
         
-        for i in range(0,ROWSIZE):
-            if ((row + 1 < ROWSIZE) and (col + 1 < COLSIZE)):
-                diagonal.append(gameBoard[row + 1][col + 1])
+        for i in range(1,ROWSIZE):
+            row += 1
+            colNxt += 1
+            
+            if ((row < ROWSIZE) and (colNxt < COLSIZE)):
+                diagonal.append(gameBoard[row][colNxt])
     
         if (len(diagonal) >= TOWIN):
             result = checkInARow(diagonal)
@@ -142,15 +146,19 @@ def checkDiagonalTop(gameBoard):
             return result
     
     # Check positive slope diagonals
-    for col in range(COLSIZE,0,-1):
+    for col in range(COLSIZE - 1,-1,-1):
         diagonal = []
         result = DRAW
         row = 0
+        colNxt = col
         diagonal.append(gameBoard[row][col])        
         
-        for i in range(0,ROWSIZE):
-            if ((row + 1 < ROWSIZE) and (col - 1 >= 0)):
-                diagonal.append(gameBoard[row + 1][col - 1])
+        for i in range(1,ROWSIZE):
+            row += 1
+            colNxt -= 1
+            
+            if ((row < ROWSIZE) and (colNxt >= 0)):
+                diagonal.append(gameBoard[row][colNxt])
     
         if (len(diagonal) >= TOWIN):
             result = checkInARow(diagonal)
@@ -171,11 +179,15 @@ def checkDiagonalLeft(gameBoard):
         diagonal = []
         result = DRAW
         col = 0
+        rowNxt = row
         diagonal.append(gameBoard[row][col])        
         
-        for i in range(0,COLSIZE):
-            if ((row + 1 < ROWSIZE) and (col + 1 < COLSIZE)):
-                diagonal.append(gameBoard[row + 1][col + 1])
+        for i in range(1,COLSIZE):
+            col += 1
+            rowNxt += 1
+            
+            if ((rowNxt < ROWSIZE) and (col < COLSIZE)):
+                diagonal.append(gameBoard[rowNxt][col])
     
         if (len(diagonal) >= TOWIN):
             result = checkInARow(diagonal)
@@ -186,15 +198,19 @@ def checkDiagonalLeft(gameBoard):
             return result
     
     # Check positive slope diagonals
-    for row in range(ROWSIZE,0,-1):
+    for row in range(ROWSIZE - 1,-1,-1):
         diagonal = []
         result = DRAW
         col = 0
+        rowNxt = row
         diagonal.append(gameBoard[row][col])        
         
-        for i in range(0,COLSIZE):
-            if ((row - 1 >= 0) and (col + 1 < COLSIZE)):
-                diagonal.append(gameBoard[row - 1][col + 1])
+        for i in range(1,COLSIZE):
+            col += 1
+            rowNxt -= 1
+            
+            if ((rowNxt >= 0) and (col < COLSIZE)):
+                diagonal.append(gameBoard[rowNxt][col])
     
         if (len(diagonal) >= TOWIN):
             result = checkInARow(diagonal)
@@ -310,6 +326,27 @@ def printGameBoard(gameBoard):
     
     printRowBorder()
 
+def isGameOver(gameBoard):
+    # Check the game state
+    result = checkWinner(gameBoard)
+    
+    # If No Winner, Game isn't over
+    if (result == NOWINNER):
+        return False
+    
+    print("GAME OVER")
+    
+    # Print the game result
+    if (result == 1):
+        print(PLAYER1WONMSG)
+    elif (result == 2):
+        print(PLAYER2WONMSG)
+    else:
+        print(DRAWMSG)
+    
+    printGameBoard(gameBoard)
+    return True    
+    
 def getMove(gameBoard):
     # Display game state
     printGameBoard(gameBoard)
@@ -366,7 +403,6 @@ def makeMove(gameBoard, move, p1Turn):
 
 def playGame(gameBoard):
     p1Turn = True
-    result = NOWINNER
     
     # Take turns and switch player at end of turn
     while (True):
@@ -381,11 +417,9 @@ def playGame(gameBoard):
         # Update the game board with move
         makeMove(gameBoard, move, p1Turn)
         
-        # Check the game state
-        result = checkWinner(gameBoard)
-        
+        # Check the game state        
         # If Game Over, exit loop
-        if (result != NOWINNER):
+        if (isGameOver(gameBoard)):
             break
         
         # Switch current player
@@ -393,18 +427,6 @@ def playGame(gameBoard):
             p1Turn = False
         else:
             p1Turn = True
-
-    print("GAME OVER")
-    
-    # Print the game result
-    if (result == 1):
-        print(PLAYER1WONMSG)
-    elif (result == 2):
-        print(PLAYER2WONMSG)
-    else:
-        print(DRAWMSG)
-    
-    printGameBoard(gameBoard)
 
 def newGame():
     gameBoard = []
@@ -424,6 +446,41 @@ def newGame():
     
 if __name__ == '__main__':
     gameBoard = newGame()
-    playGame(gameBoard)
-        
+
+    gameBoard = [[2, 2, 0],[2, 1, 0],[2, 1, 1]]
+    printGameBoard(gameBoard)
+    isGameOver(gameBoard)
+    
+    gameBoard = [[1, 2, 0],[2, 1, 0],[2, 1, 1]]
+    printGameBoard(gameBoard)
+    isGameOver(gameBoard)
+    
+    gameBoard = [[0, 1, 0],[2, 1, 0],[2, 1, 1]]
+    printGameBoard(gameBoard)
+    isGameOver(gameBoard)    
+    
+    gameBoard = [[1, 2, 0],[2, 1, 0],[2, 1, 2]]
+    printGameBoard(gameBoard)
+    isGameOver(gameBoard)    
+    
+    gameBoard = [[1, 2, 0],[2, 1, 0],[2, 1, 0]]
+    printGameBoard(gameBoard)
+    isGameOver(gameBoard)    
+    
+    gameBoard = [[1, 2, 1],[1, 1, 0],[2, 2, 2]]
+    printGameBoard(gameBoard)
+    isGameOver(gameBoard)     
+
+    gameBoard = [[1, 2, 1],[1, 2, 2],[2, 1, 1]]    
+    printGameBoard(gameBoard)
+    isGameOver(gameBoard)    
+    
+    
+    #playGame(gameBoard)
+    
+  
+    
+    
+    
+    
     
