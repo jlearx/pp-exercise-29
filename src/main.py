@@ -271,13 +271,15 @@ def getGameBoardSize():
         xPos = -1
         
         while (inputStr == ""):
-            inputStr = input("Please enter the game board dimensions as wxh (eg. 3x3): ").strip()
+            inputStr = input("Please enter the game board dimensions as wxh (min. 3x3): ").strip()
             inputStr = inputStr.lower()
             
+            # Check input length
             if (len(inputStr) < 3):
                 inputStr = ""                
                 continue
             
+            # Check input format
             xPos = inputStr.find('x')
             
             if ((xPos < 1) or (xPos == len(inputStr) - 1)):
@@ -285,10 +287,24 @@ def getGameBoardSize():
                 continue
         
         # Width (number of columns)
-        COLSIZE = int(inputStr[:xPos])
+        colsize = int(inputStr[:xPos])
+        
+        # Minimum size 3x3
+        if (colsize < 3):
+            inputStr = ""
+            continue
+        
+        COLSIZE = colsize
         
         # Height (number of rows)
-        ROWSIZE = int(inputStr[xPos + 1:])
+        rowsize = int(inputStr[xPos + 1:])
+        
+        # Minimum size 3x3
+        if (rowsize < 3):
+            inputStr = ""
+            continue        
+        
+        ROWSIZE = rowsize
     
     # How many in a row should the user need to win?
     if (ROWSIZE <= COLSIZE):
@@ -432,6 +448,8 @@ def newGame():
     gameBoard = []
     
     getGameBoardSize()
+    
+    print("Need " + str(TOWIN) + " in a row to win!")
 
     # Initialize Game Board
     for r in range(0,ROWSIZE):
@@ -445,39 +463,22 @@ def newGame():
     return gameBoard
     
 if __name__ == '__main__':
-    gameBoard = newGame()
-
-    gameBoard = [[2, 2, 0],[2, 1, 0],[2, 1, 1]]
-    printGameBoard(gameBoard)
-    isGameOver(gameBoard)
+    p1wins = 0
+    p2wins = 0
+    play = True
     
-    gameBoard = [[1, 2, 0],[2, 1, 0],[2, 1, 1]]
-    printGameBoard(gameBoard)
-    isGameOver(gameBoard)
+    while (play):
+        gameBoard = newGame()
     
-    gameBoard = [[0, 1, 0],[2, 1, 0],[2, 1, 1]]
-    printGameBoard(gameBoard)
-    isGameOver(gameBoard)    
-    
-    gameBoard = [[1, 2, 0],[2, 1, 0],[2, 1, 2]]
-    printGameBoard(gameBoard)
-    isGameOver(gameBoard)    
-    
-    gameBoard = [[1, 2, 0],[2, 1, 0],[2, 1, 0]]
-    printGameBoard(gameBoard)
-    isGameOver(gameBoard)    
-    
-    gameBoard = [[1, 2, 1],[1, 1, 0],[2, 2, 2]]
-    printGameBoard(gameBoard)
-    isGameOver(gameBoard)     
-
-    gameBoard = [[1, 2, 1],[1, 2, 2],[2, 1, 1]]    
-    printGameBoard(gameBoard)
-    isGameOver(gameBoard)    
-    
-    
-    #playGame(gameBoard)
-    
+        playGame(gameBoard)
+        
+        inputStr = input("Play again? (Y or N): ")
+        inputStr = inputStr.strip().lower()
+        
+        if (inputStr[0] == 'y'):
+            play = True
+        else:
+            play = False
   
     
     
